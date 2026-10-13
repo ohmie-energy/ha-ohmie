@@ -1,0 +1,86 @@
+blueprint:
+  name: Ohmie · set a charge (or export) window and target charge
+  description: >-
+    For a battery or inverter that takes a time window and a target charge level, as many
+    schedule-based inverters do. Copies Ohmie's Next charge (or Next export) window and its target
+    into your inverter's settings. When Ohmie is not in control, the window is switched off (or set
+    to 00:00 to 00:00) and the inverter runs its own schedule; also when your "only while this is
+    on" entity goes off. Nothing here is specific to a brand.
+  domain: automation
+  source_url: https://github.com/ohmie-energy/ha-ohmie/blob/main/blueprints/automation/ohmie/charge_window.yaml
+  input:
+    window:
+      name: Ohmie "Next charge" or "Next export" sensor
+      selector:
+        entity:
+          filter: { integration: ohmie, domain: sensor }
+    start:
+      name: Window start time
+      selector:
+        entity:
+          filter: { domain: time }
+    end:
+      name: Window end time
+      selector:
+        entity:
+          filter: { domain: time }
+    target:
+      name: Target charge level (optional)
+      default: ""
+      selector:
+        entity:
+          filter: { domain: number }
+    enable:
+      name: Switch that turns the window on (optional)
+      default: ""
+      selector:
+        entity:
+          filter: { domain: switch }
+    enabled:
+      name: Only while this is on (optional)
+      default: ""
+      selector:
+        entity:
+          filter:
+            - { domain: input_boolean }
+            - { domain: switch }
+            - { domain: binary_sensor }
+mode: restart
+trigger_variables:
+  enabled_entity: !input enabled
+triggers:
+  - trigger: state
+    entity_id: !input window
+  - trigger: template
+    value_template: "{{ enabled_entity != '' and is_state(enabled_entity, 'on') }}"
+  - trigger: template
+    value_template: "{{ enabled_entity != '' and not is_state(enabled_entity, 'on') }}"
+variables:
+  window_entity: !input window
+  target_entity: !input target
+  enable_entity: !input enable
+  active: >-
+    {{ (enabled_entity == '' or is_state(enabled_entity, 'on'))
+       and states(window_entity) not in ['unknown', 'unavailable']
+       and state_attr(window_entity, 'commanded') == true }}
+  start_at: "{{ as_local(as_datetime(states(window_entity))).strftime('%H:%M:%S') if active else '00:00:00' }}"
+  end_at: >-
+    {{ as_local(as_datetime(state_attr(window_entity, 'end'))).strftime('%H:%M:%S')
+       if active else '00:00:00' }}
+  soc: "{{ state_attr(window_entity, 'target_soc_pct') }}"
+actions:
+  - action: time.set_value
+    target: { entity_id: !input start }
+    data: { time: "{{ start_at }}" }
+  - action: time.set_value
+    target: { entity_id: !input end }
+    data: { time: "{{ end_at }}" }
+  - if: "{{ active and soc is number and target_entity != '' }}"
+    then:
+      - action: number.set_value
+        target: { entity_id: "{{ target_entity }}" }
+        data: { value: "{{ soc | round(0) }}" }
+  - if: "{{ enable_entity != '' }}"
+    then:
+      - action: "switch.turn_{{ 'on' if active else 'off' }}"
+        target: { entity_id: "{{ enable_entity }}" }

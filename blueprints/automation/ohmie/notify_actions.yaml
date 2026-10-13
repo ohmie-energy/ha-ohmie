@@ -1,0 +1,34 @@
+blueprint:
+  name: Ohmie · tell me what Ohmie plans
+  description: Send a notification when Ohmie's plan for a device changes action, with the reason.
+  domain: automation
+  source_url: https://github.com/ohmie-energy/ha-ohmie/blob/main/blueprints/automation/ohmie/notify_actions.yaml
+  input:
+    action_sensor:
+      name: Ohmie "Action" sensor
+      selector:
+        entity:
+          filter: { integration: ohmie, domain: sensor }
+    reason_sensor:
+      name: Ohmie "Reason" sensor of the same device
+      selector:
+        entity:
+          filter: { integration: ohmie, domain: sensor }
+    notify_action:
+      name: Notify action
+      description: For example notify.mobile_app_your_phone, or notify.notify for every phone.
+      default: notify.notify
+      selector:
+        text: {}
+mode: queued
+triggers:
+  - trigger: state
+    entity_id: !input action_sensor
+    not_to: ["unknown", "unavailable"]
+variables:
+  reason_entity: !input reason_sensor
+actions:
+  - action: !input notify_action
+    data:
+      title: "Ohmie: {{ state_attr(trigger.entity_id, 'friendly_name') }} → {{ trigger.to_state.state }}"
+      message: "{{ states(reason_entity) }}"

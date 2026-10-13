@@ -1,0 +1,44 @@
+[project]
+name = "ha-ohmie"
+version = "0.1.0"
+description = "Ohmie for Home Assistant: price-aware plans for your battery, EV, hot water and pump"
+requires-python = ">=3.14.2"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+
+[dependency-groups]
+dev = [
+    # Pinned to the Home Assistant release the integration is tested against (manifest + hacs.json).
+    "pytest-homeassistant-custom-component==0.13.367",
+    "nats-py[aiohttp]==2.16.0",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    # Wizard output checked against the CRD schemas (ohmie-energy/gitops crds/).
+    "jsonschema>=4",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "-p no:cacheprovider"
+markers = ["nats: needs a nats-server binary (NATS_SERVER_BIN or on PATH)"]
+filterwarnings = [
+    # nats-py 2.16 passes aiohttp a float timeout; harmless, fixed upstream later.
+    "ignore:parameter 'timeout' of type 'float' is deprecated:DeprecationWarning",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "ASYNC"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ASYNC"]  # test fixtures start a nats-server and write its config
+
+[tool.mypy]
+python_version = "3.14"
+ignore_missing_imports = true
+check_untyped_defs = true

@@ -1,0 +1,574 @@
+{
+  "config": {
+    "step": {
+      "pick_implementation": {
+        "title": "Sign in to Ohmie"
+      },
+      "reauth_confirm": {
+        "title": "Sign in to Ohmie again",
+        "description": "Ohmie did not accept the saved sign-in. Sign in again to keep your plans and devices working."
+      },
+      "home": {
+        "title": "Your Ohmie home",
+        "description": "Pick the Ohmie home that this Home Assistant belongs to.",
+        "data": {
+          "home": "Home"
+        }
+      },
+      "new_home": {
+        "title": "Create your Ohmie home",
+        "description": "Ohmie keeps one home per person. Next you tell Ohmie about this site and its devices. Ohmie stores no name or address: only the grid node nearest to you."
+      },
+      "site_pick": {
+        "title": "Which site is this?",
+        "description": "A home can have more than one site, for example a bach. Each site is set up from its own Home Assistant.",
+        "data": {
+          "site": "Site"
+        }
+      },
+      "site": {
+        "title": "This site",
+        "description": "Ohmie prices your site at the nearest grid node. It uses your Home Assistant location to find it, then forgets the location.",
+        "data": {
+          "name": "Name (lower case, no spaces)",
+          "node": "Nearest grid node",
+          "island": "Island",
+          "icp": "ICP number (optional)",
+          "phases": "Electricity supply",
+          "breaker_a": "Main breaker",
+          "export_kw": "Export limit"
+        },
+        "data_description": {
+          "icp": "Your ICP (on your power bill) lets Ohmie add your lines company's charges and losses, so plans use your total price. It is stored encrypted and never shown again.",
+          "breaker_a": "Sets how much power the site can draw at once.",
+          "export_kw": "The most your site may send to the grid, from your network's connection approval."
+        }
+      },
+      "devices": {
+        "title": "Devices",
+        "description": "Devices already in Ohmie for this site: {existing}. Ohmie found {found} more in Home Assistant. Pick the ones to add.",
+        "data": {
+          "add": "Add these devices",
+          "manual": "Add a device that is not listed"
+        }
+      },
+      "device_type": {
+        "title": "What is {device}?",
+        "data": {
+          "device_type": "Device type"
+        }
+      },
+      "device_model": {
+        "title": "Which {type} is {device}?",
+        "description": "Ohmie fills in typical values. You can change them next.",
+        "data": {
+          "model": "Model"
+        }
+      },
+      "device": {
+        "title": "{device}",
+        "description": "Connect the entities and check the values. Only the essentials are asked.",
+        "data": {
+          "name": "Name in Ohmie (lower case, no spaces)",
+          "soc": "Charge level sensor (%)",
+          "power": "Power sensor",
+          "energy": "Energy sensor (total; a meter's import)",
+          "energy_out": "Export energy sensor (total, meter only)",
+          "temp": "Temperature sensor",
+          "voltage": "Supply voltage sensor (optional: shows when the network cuts this circuit)",
+          "switch": "Its real switch (optional: Ohmie only reads it)",
+          "capacity_kwh": "Usable capacity",
+          "power_kw": "Power",
+          "reserve_pct": "Backup reserve",
+          "target_pct": "Charge to at least",
+          "ready_by": "Ready by",
+          "run_hours": "Run for",
+          "every_days": "Every",
+          "peak_kw": "Peak power",
+          "normal_state": "When Ohmie is not in control, the Ohmie switch is"
+        },
+        "data_description": {
+          "reserve_pct": "Ohmie never plans the battery below this, so it is there for a power cut.",
+          "switch": "Without a power sensor, Ohmie counts the device's power from this switch being on. Ohmie never turns it on or off.",
+          "normal_state": "Ohmie has its own switch for this device (Ohmie · name). Your automation passes it to the real device. This is what Ohmie's switch shows when you pause Ohmie or Ohmie has no plan."
+        }
+      },
+      "style": {
+        "title": "How should Ohmie plan?",
+        "data": {
+          "style": "Style"
+        }
+      },
+      "control": {
+        "title": "Suggest, or drive?",
+        "description": "By default Ohmie only suggests: your devices show the plan and you decide. Pick the devices that Ohmie may control. Ohmie never touches your equipment: it changes only its own entities (an Ohmie switch, a Command, a Next charge window), and your own automation, for example an Ohmie blueprint, passes them on, under your own conditions. You can change this at any time, and the Pause switch stops Ohmie at once.",
+        "data": {
+          "drive": "Let Ohmie drive"
+        }
+      },
+      "consent": {
+        "title": "Ohmie's terms ({version})",
+        "description": "Ohmie will drive: {devices}.\n\n{terms}",
+        "data": {
+          "accept": "I accept these terms"
+        }
+      },
+      "summary": {
+        "title": "Ready",
+        "description": "Site: {site}\nDevices: {devices}\nStyle: {style}\nPower plan: {plan}\nOhmie drives: {drive}\n\nOhmie sets this up now. Your first plan arrives within a few minutes."
+      },
+      "plan": {
+        "title": "Your power plan",
+        "description": "What you pay is set by your plan with your retailer, not by the market price. Tell Ohmie what is on your bill (rates as printed, GST included) and Ohmie plans on what you really pay. It also lets Ohmie show what a different plan would save you.",
+        "data": {
+          "kind": "My plan is",
+          "retailer": "Retailer",
+          "daily_charge": "Daily charge",
+          "export_kind": "For power I export",
+          "since": "This plan started on",
+          "controlled": "I also have a controlled register (ripple control), for example for hot water"
+        },
+        "data_description": {
+          "daily_charge": "The fixed daily charge on your bill, GST included.",
+          "since": "Today, or the day you changed plan or retailer if you are catching up: Ohmie corrects its records from that day.",
+          "controlled": "A cheaper rate for devices the lines company may switch off for some hours a day."
+        }
+      },
+      "plan_controlled": {
+        "title": "Your controlled register",
+        "description": "Which devices are on it, how it is priced, and how many hours a day the network guarantees supply (17 is common).",
+        "data": {
+          "assets": "Devices on the controlled register",
+          "controlled_kind": "It is priced as",
+          "guaranteed_hours": "Guaranteed supply"
+        }
+      },
+      "plan_spot": {
+        "title": "Spot: {flow}",
+        "description": "On spot you pay the wholesale price at your node, the losses and your lines company's charge (Ohmie works these out from your ICP), plus your retailer's margin: per kWh, as a percentage of the energy price, or both. Leave them empty if you do not know them yet.",
+        "data": {
+          "margin_c": "Margin per kWh",
+          "margin_pct": "Margin as a percentage of the energy price"
+        }
+      },
+      "plan_flat": {
+        "title": "One price: {flow}",
+        "data": {
+          "rate_c": "Price per kWh"
+        },
+        "data_description": {
+          "rate_c": "As printed on your bill, GST included."
+        }
+      },
+      "plan_schedule": {
+        "title": "Time of use: {flow}",
+        "description": "Next you enter your plan's windows (peak, shoulder, off-peak...), one at a time, as your retailer defines them; they need not match your lines company's. Every hour outside your windows costs the rate below.",
+        "data": {
+          "other_c": "Rate for every other hour"
+        }
+      },
+      "plan_window": {
+        "title": "Window {n} of up to {max}: {flow}",
+        "description": "A window may cross midnight, for example 21:00 to 07:00. If two windows overlap, the first one you entered wins.",
+        "data": {
+          "name": "Name (for example shoulder)",
+          "rate_c": "Rate",
+          "from": "From",
+          "to": "To",
+          "days": "Days",
+          "add_another": "Add another window"
+        }
+      }
+    },
+    "progress": {
+      "apply": "Ohmie is setting up your site. This takes up to a minute."
+    },
+    "error": {
+      "invalid_name": "Use lower-case letters, digits and dashes, and a name that is not used yet.",
+      "invalid_icp": "An ICP is 10 digits, 2 letters and 3 letters or digits, for example 0001234567PC0F1.",
+      "no_island": "Pick the island.",
+      "must_accept": "Accept the terms, or go back and let Ohmie only suggest.",
+      "empty_window": "A window needs a start and an end that differ.",
+      "since_future": "The date cannot be in the future."
+    },
+    "abort": {
+      "invite_pending": "Your Ohmie invite is not active yet. You get an email when it is; then add Ohmie again.",
+      "cannot_connect": "Ohmie is not reachable. Try again in a few minutes.",
+      "wrong_account": "You signed in as a different person. Sign in with the account that owns this home.",
+      "rejected": "Ohmie did not accept the setup: {problems}",
+      "already_configured": "This site is already set up.",
+      "reauth_successful": "Signed in again."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Ohmie",
+        "menu_options": {
+          "devices": "Add devices",
+          "change": "Change a device",
+          "remove": "Remove devices",
+          "control": "Suggest or drive",
+          "entities": "Connect different entities",
+          "power_plan": "Change my power plan",
+          "balancing": "Load balancing"
+        }
+      },
+      "devices": {
+        "title": "Add devices",
+        "description": "Devices in Ohmie that this Home Assistant does not use yet: {existing}. Ohmie found {found} more here.",
+        "data": {
+          "add": "Add these devices",
+          "manual": "Add a device that is not listed"
+        }
+      },
+      "device_type": {
+        "title": "What is {device}?",
+        "data": {
+          "device_type": "Device type"
+        }
+      },
+      "device_model": {
+        "title": "Which {type} is {device}?",
+        "data": {
+          "model": "Model"
+        }
+      },
+      "device": {
+        "title": "{device}",
+        "data": {
+          "name": "Name in Ohmie (lower case, no spaces)",
+          "soc": "Charge level sensor (%)",
+          "power": "Power sensor",
+          "energy": "Energy sensor (total; a meter's import)",
+          "energy_out": "Export energy sensor (total, meter only)",
+          "temp": "Temperature sensor",
+          "voltage": "Supply voltage sensor (optional: shows when the network cuts this circuit)",
+          "switch": "Its real switch (optional: Ohmie only reads it)",
+          "capacity_kwh": "Usable capacity",
+          "power_kw": "Power",
+          "reserve_pct": "Backup reserve",
+          "target_pct": "Charge to at least",
+          "ready_by": "Ready by",
+          "run_hours": "Run for",
+          "every_days": "Every",
+          "peak_kw": "Peak power",
+          "normal_state": "When Ohmie is not in control, the Ohmie switch is"
+        }
+      },
+      "control": {
+        "title": "Suggest, or drive?",
+        "description": "Pick the devices that Ohmie may drive. Devices you leave out go back to suggestions only.",
+        "data": {
+          "drive": "Let Ohmie drive"
+        }
+      },
+      "consent": {
+        "title": "Ohmie's terms ({version})",
+        "description": "Ohmie will drive: {devices}.\n\n{terms}",
+        "data": {
+          "accept": "I accept these terms"
+        }
+      },
+      "remove": {
+        "title": "Remove devices",
+        "description": "Removed devices leave Ohmie too: their plans stop.",
+        "data": {
+          "assets": "Remove"
+        }
+      },
+      "entities": {
+        "title": "Connect different entities",
+        "description": "Pick a device. Its plan and history in Ohmie stay as they are.",
+        "data": {
+          "asset": "Device"
+        }
+      },
+      "plan": {
+        "title": "Your power plan",
+        "description": "What you pay is set by your plan with your retailer, not by the market price. Tell Ohmie what is on your bill (rates as printed, GST included) and Ohmie plans on what you really pay. It also lets Ohmie show what a different plan would save you.",
+        "data": {
+          "kind": "My plan is",
+          "retailer": "Retailer",
+          "daily_charge": "Daily charge",
+          "export_kind": "For power I export",
+          "since": "This plan started on",
+          "controlled": "I also have a controlled register (ripple control), for example for hot water"
+        },
+        "data_description": {
+          "daily_charge": "The fixed daily charge on your bill, GST included.",
+          "since": "Today, or the day you changed plan or retailer if you are catching up: Ohmie corrects its records from that day.",
+          "controlled": "A cheaper rate for devices the lines company may switch off for some hours a day."
+        }
+      },
+      "plan_controlled": {
+        "title": "Your controlled register",
+        "description": "Which devices are on it, how it is priced, and how many hours a day the network guarantees supply (17 is common).",
+        "data": {
+          "assets": "Devices on the controlled register",
+          "controlled_kind": "It is priced as",
+          "guaranteed_hours": "Guaranteed supply"
+        }
+      },
+      "plan_spot": {
+        "title": "Spot: {flow}",
+        "description": "On spot you pay the wholesale price at your node, the losses and your lines company's charge (Ohmie works these out from your ICP), plus your retailer's margin: per kWh, as a percentage of the energy price, or both. Leave them empty if you do not know them yet.",
+        "data": {
+          "margin_c": "Margin per kWh",
+          "margin_pct": "Margin as a percentage of the energy price"
+        }
+      },
+      "plan_flat": {
+        "title": "One price: {flow}",
+        "data": {
+          "rate_c": "Price per kWh"
+        },
+        "data_description": {
+          "rate_c": "As printed on your bill, GST included."
+        }
+      },
+      "plan_schedule": {
+        "title": "Time of use: {flow}",
+        "description": "Next you enter your plan's windows (peak, shoulder, off-peak...), one at a time, as your retailer defines them; they need not match your lines company's. Every hour outside your windows costs the rate below.",
+        "data": {
+          "other_c": "Rate for every other hour"
+        }
+      },
+      "plan_window": {
+        "title": "Window {n} of up to {max}: {flow}",
+        "description": "A window may cross midnight, for example 21:00 to 07:00. If two windows overlap, the first one you entered wins.",
+        "data": {
+          "name": "Name (for example shoulder)",
+          "rate_c": "Rate",
+          "from": "From",
+          "to": "To",
+          "days": "Days",
+          "add_another": "Add another window"
+        }
+      },
+      "change": {
+        "title": "Change a device",
+        "description": "Pick the device whose specs you want to correct.",
+        "data": {
+          "asset": "Device"
+        }
+      },
+      "change_device": {
+        "title": "Change {device}",
+        "description": "Correct the values from the device's own label or app. Ohmie plans with them from the next plan.",
+        "data": {
+          "capacity_kwh": "Usable capacity",
+          "power_kw": "Power",
+          "reserve_pct": "Backup reserve",
+          "run_hours": "Run hours",
+          "every_days": "Every",
+          "peak_kw": "Peak power"
+        }
+      },
+      "balancing": {
+        "title": "Load balancing",
+        "description": "Pick what reads each phase at your grid connection (its current in A, or its power in W or kW), its voltage if you have it, and each circuit of this site. Then say how much of each limit Ohmie may use; the rest stays free for things nobody controls. Ohmie acts one step at a time: first a device that can slow down (an EV charger), and only then one that switches off. It gives the power back below the release line, at most 15 points lower. A voltage that sags by the set percent counts like an overload. This is not protection: your breakers, fuse and charger stay that.",
+        "data": {
+          "L1": "Phase L1",
+          "L2": "Phase L2",
+          "L3": "Phase L3",
+          "commit_pct": "Ohmie may use up to (% of each limit)",
+          "release_pct": "Ohmie gives the power back below (% of each limit)",
+          "sag_pct": "Act when the voltage sags by (%)",
+          "voltage_L1": "Voltage L1",
+          "voltage_L2": "Voltage L2",
+          "voltage_L3": "Voltage L3"
+        }
+      }
+    },
+    "error": {
+      "invalid_name": "Use lower-case letters, digits and dashes, and a name that is not used yet.",
+      "must_accept": "Accept the terms, or leave the device to suggestions only.",
+      "empty_window": "A window needs a start and an end that differ.",
+      "since_future": "The date cannot be in the future.",
+      "release_gap": "The release line must be below the commit line, and at most 15 points below it."
+    },
+    "abort": {
+      "rejected": "Ohmie did not accept the change: {problems}",
+      "nothing_to_change": "This site has no device with specs to change."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "action": {
+        "name": "Action",
+        "state": {
+          "charge": "Charge",
+          "hold": "Hold",
+          "discharge": "Discharge",
+          "run": "Run",
+          "idle": "Idle"
+        }
+      },
+      "setpoint": {
+        "name": "Setpoint"
+      },
+      "reason": {
+        "name": "Reason"
+      },
+      "mode": {
+        "name": "Mode",
+        "state": {
+          "advisory": "Suggests",
+          "hands-off": "Drives"
+        }
+      },
+      "price_now": {
+        "name": "Price now"
+      },
+      "next_cheap_window": {
+        "name": "Next cheap window"
+      },
+      "command": {
+        "name": "Command",
+        "state": {
+          "charge": "Charge",
+          "hold": "Hold",
+          "discharge": "Discharge",
+          "run": "Run",
+          "idle": "Idle",
+          "normal": "Normal (own mode)"
+        }
+      },
+      "next_charge": {
+        "name": "Next charge"
+      },
+      "next_export": {
+        "name": "Next export"
+      },
+      "reserve": {
+        "name": "Reserve"
+      },
+      "left_on_table": {
+        "name": "Left on the table"
+      },
+      "headroom_l1": {
+        "name": "Headroom L1"
+      },
+      "headroom_l2": {
+        "name": "Headroom L2"
+      },
+      "headroom_l3": {
+        "name": "Headroom L3"
+      }
+    },
+    "binary_sensor": {
+      "run_now": {
+        "name": "Run now"
+      },
+      "cheap_now": {
+        "name": "Cheap now"
+      },
+      "connected": {
+        "name": "Connected"
+      },
+      "load_balancing": {
+        "name": "Load balancing"
+      }
+    },
+    "switch": {
+      "follow": {
+        "name": "Let Ohmie drive"
+      },
+      "pause": {
+        "name": "Pause Ohmie"
+      }
+    },
+    "calendar": {
+      "plan": {
+        "name": "Plan"
+      }
+    },
+    "number": {
+      "target": {
+        "name": "Target charge"
+      },
+      "run_hours": {
+        "name": "Run hours"
+      },
+      "every_days": {
+        "name": "Run every"
+      }
+    },
+    "time": {
+      "ready_by": {
+        "name": "Ready by"
+      }
+    }
+  },
+  "issues": {
+    "invite_pending": {
+      "title": "Your Ohmie invite is pending",
+      "description": "Your Ohmie account has no active invite yet. Ohmie retries by itself; you get an email when the invite is active."
+    },
+    "plan_stale": {
+      "title": "No current Ohmie plan for {asset}",
+      "description": "Ohmie has not sent a plan for {asset} for an hour. If Ohmie drives it, the device goes back to its own normal mode. Check the device's settings in Ohmie."
+    },
+    "entity_unavailable": {
+      "title": "{entity} is unavailable",
+      "description": "Ohmie uses {entity} for {asset}, and it has been unavailable for 15 minutes. Check its integration, or connect a different entity: Settings → Ohmie → Configure → Add devices."
+    },
+    "consent_outdated": {
+      "title": "Ohmie's terms changed",
+      "description": "Ohmie has new terms ({version}). Ohmie keeps driving your devices under the terms you accepted; to accept the new ones, open Ohmie → Configure → Suggest or drive."
+    },
+    "supply_cut": {
+      "title": "Was the power to {asset} cut?",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Was the power to {asset} cut?",
+            "description": "Ohmie planned {asset} on from {start} to {end}, but it drew no power and was not full.{notice} Was its supply cut by the network (ripple control)? Your answer teaches Ohmie how often this happens.",
+            "data": {
+              "cut": "Cut by the network?"
+            }
+          }
+        },
+        "error": {
+          "cannot_connect": "Ohmie could not be reached. Try again later."
+        },
+        "abort": {
+          "not_loaded": "The Ohmie entry is not loaded."
+        }
+      }
+    }
+  },
+  "services": {
+    "report": {
+      "name": "Report to Ohmie",
+      "description": "Tell Ohmie what happened to its command for a device. Use it in your own automations: an override hands the device back to its own mode until the next half hour.",
+      "fields": {
+        "asset": {
+          "name": "Device",
+          "description": "The device's name in Ohmie, for example battery."
+        },
+        "outcome": {
+          "name": "Outcome",
+          "description": "applied: done as commanded; overridden: changed by hand; failed: the device refused."
+        },
+        "detail": {
+          "name": "Detail",
+          "description": "Why, in a few words."
+        },
+        "site": {
+          "name": "Site",
+          "description": "Only when two Ohmie sites have a device with this name."
+        }
+      }
+    }
+  },
+  "selector": {
+    "supply_cut": {
+      "options": {
+        "yes": "Yes, the supply was cut",
+        "no": "No: I switched it off, or it was full"
+      }
+    }
+  }
+}

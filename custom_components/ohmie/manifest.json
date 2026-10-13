@@ -1,0 +1,15 @@
+{
+  "domain": "ohmie",
+  "name": "Ohmie",
+  "after_dependencies": ["energy"],
+  "codeowners": ["@ohmie-energy"],
+  "config_flow": true,
+  "dependencies": ["auth"],
+  "documentation": "https://github.com/ohmie-energy/ha-ohmie",
+  "integration_type": "hub",
+  "iot_class": "cloud_push",
+  "issue_tracker": "https://github.com/ohmie-energy/ha-ohmie/issues",
+  "loggers": ["nats"],
+  "requirements": ["nats-py==2.16.0"],
+  "version": "0.1.0"
+}

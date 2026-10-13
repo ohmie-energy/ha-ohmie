@@ -1,0 +1,41 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  hassfest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: home-assistant/actions/hassfest@50baf3a307f87100cf550d4ae127746595030d5d # master, 2026-10-13
+
+  hacs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: hacs/action@1ebf01c408f29afcb6406bd431bc98fd8cbb15aa # main, 2026-10-13
+        with:
+          category: integration
+          ignore: brands  # no Ohmie logo yet; remove when custom_components/ohmie/brand/icon.png exists
+
+  test:
+    runs-on: ubuntu-latest
+    env:
+      NATS_VERSION: v2.15.0   # the server version Ohmie runs (Infra nats_deployment.yml)
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+      - run: uv python install 3.14
+      - name: nats-server, for the NATS link tests
+        run: |
+          curl -sSfL "https://github.com/nats-io/nats-server/releases/download/${NATS_VERSION}/nats-server-${NATS_VERSION}-linux-amd64.tar.gz" | tar xz
+          echo "NATS_SERVER_BIN=$PWD/nats-server-${NATS_VERSION}-linux-amd64/nats-server" >> "$GITHUB_ENV"
+      - run: uv sync --group dev
+      - run: uv run ruff check .
+      - run: uv run mypy custom_components/ohmie
+      - run: uv run pytest -q

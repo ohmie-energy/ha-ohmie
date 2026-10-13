@@ -1,0 +1,21 @@
+report:
+  fields:
+    asset:
+      required: true
+      example: battery
+      selector:
+        text:
+    outcome:
+      required: true
+      default: overridden
+      selector:
+        select:
+          options: [applied, overridden, failed]
+    detail:
+      example: Changed by hand at the inverter
+      selector:
+        text:
+    site:
+      example: home
+      selector:
+        text:

@@ -1,0 +1,85 @@
+blueprint:
+  name: Ohmie · charge an EV at Ohmie's current
+  description: >-
+    For an EV or charger with a charge switch and a charge-current setting. Follows Ohmie's
+    Command entity: charge at the current that matches Ohmie's power, stop otherwise, and charge
+    as usual (full current) when Ohmie is not in control or your "only while this is on" entity is
+    off. Sends a change only when needed, which suits car APIs that limit commands. Nothing here is
+    specific to a brand.
+  domain: automation
+  source_url: https://github.com/ohmie-energy/ha-ohmie/blob/main/blueprints/automation/ohmie/ev_charge_current.yaml
+  input:
+    command:
+      name: Ohmie "Command" sensor of the EV
+      selector:
+        entity:
+          filter: { integration: ohmie, domain: sensor }
+    charge:
+      name: Charge switch
+      selector:
+        entity:
+          filter: { domain: switch }
+    current:
+      name: Charge current (A)
+      selector:
+        entity:
+          filter: { domain: number }
+    phases:
+      name: Charging phases
+      default: 1
+      selector:
+        number: { min: 1, max: 3, step: 2, mode: box }
+    min_amps:
+      name: Lowest current
+      default: 6
+      selector:
+        number: { min: 1, max: 32, unit_of_measurement: A, mode: box }
+    max_amps:
+      name: Highest current
+      default: 32
+      selector:
+        number: { min: 1, max: 80, unit_of_measurement: A, mode: box }
+    enabled:
+      name: Only while this is on (optional)
+      default: ""
+      selector:
+        entity:
+          filter:
+            - { domain: input_boolean }
+            - { domain: switch }
+            - { domain: binary_sensor }
+mode: restart
+trigger_variables:
+  enabled_entity: !input enabled
+triggers:
+  - trigger: state
+    entity_id: !input command
+  - trigger: template
+    value_template: "{{ enabled_entity != '' and is_state(enabled_entity, 'on') }}"
+  - trigger: template
+    value_template: "{{ enabled_entity != '' and not is_state(enabled_entity, 'on') }}"
+variables:
+  command_entity: !input command
+  charge_entity: !input charge
+  current_entity: !input current
+  phases: !input phases
+  lo: !input min_amps
+  hi: !input max_amps
+  cmd: "{{ states(command_entity) if enabled_entity == '' or is_state(enabled_entity, 'on') else 'normal' }}"
+  amps: >-
+    {% set a = (state_attr(command_entity, 'power_magnitude_w') | float(0) / (230 * phases)) | round(0) | int %}
+    {{ [lo, [a, hi] | min] | max if cmd in ['charge', 'run'] else hi }}
+  want_on: "{{ cmd in ['charge', 'run', 'normal'] }}"
+conditions:
+  - condition: template
+    value_template: "{{ cmd not in ['unknown', 'unavailable'] }}"
+actions:
+  - if: "{{ want_on and (states(current_entity) | float(0)) != (amps | float) }}"
+    then:
+      - action: number.set_value
+        target: { entity_id: "{{ current_entity }}" }
+        data: { value: "{{ amps }}" }
+  - if: "{{ is_state(charge_entity, 'on') != want_on }}"
+    then:
+      - action: "switch.turn_{{ 'on' if want_on else 'off' }}"
+        target: { entity_id: "{{ charge_entity }}" }

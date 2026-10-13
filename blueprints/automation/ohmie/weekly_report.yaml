@@ -1,0 +1,37 @@
+blueprint:
+  name: Ohmie · weekly report
+  description: >-
+    Once a week, send what you paid on your power plan last week, what truthful spot would have
+    cost, and what following Ohmie's plans would have saved (incl GST).
+  domain: automation
+  source_url: https://github.com/ohmie-energy/ha-ohmie/blob/main/blueprints/automation/ohmie/weekly_report.yaml
+  input:
+    report_sensor:
+      name: Ohmie "Left on the table" sensor
+      selector:
+        entity:
+          filter: { integration: ohmie, domain: sensor }
+    notify_action:
+      name: Notify action
+      description: For example notify.mobile_app_your_phone, or notify.notify for every phone.
+      default: notify.notify
+      selector:
+        text: {}
+mode: queued
+triggers:
+  - trigger: state
+    entity_id: !input report_sensor
+    attribute: week_start
+variables:
+  report: !input report_sensor
+actions:
+  - condition: template
+    value_template: "{{ state_attr(report, 'week_start') is not none and states(report) | is_number }}"
+  - action: !input notify_action
+    data:
+      title: "Ohmie: the week of {{ state_attr(report, 'week_start') }}"
+      message: >-
+        You paid ${{ '%.2f' | format(state_attr(report, 'paid') | float(0)) }} for energy on your
+        plan.{% if state_attr(report, 'spot') is not none %} Spot would have cost
+        ${{ '%.2f' | format(state_attr(report, 'spot') | float(0)) }}.{% endif %} Following Ohmie
+        would have saved ${{ '%.2f' | format(states(report) | float(0)) }}.

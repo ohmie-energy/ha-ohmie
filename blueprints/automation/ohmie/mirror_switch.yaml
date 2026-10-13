@@ -1,0 +1,51 @@
+blueprint:
+  name: Ohmie · pass an Ohmie switch to your device
+  description: >-
+    Mirrors an Ohmie switch (or Ohmie's "Run now" advice) to your real switch: a relay, a smart
+    plug, a pump. Ohmie only ever changes its own switch; this automation, under your conditions,
+    changes the real one. Give it an "only while this is on" entity (for example an input boolean
+    "Ohmie enabled") to stop it at any time, from anywhere.
+  domain: automation
+  source_url: https://github.com/ohmie-energy/ha-ohmie/blob/main/blueprints/automation/ohmie/mirror_switch.yaml
+  input:
+    source:
+      name: Ohmie switch (or "Run now" sensor)
+      selector:
+        entity:
+          filter:
+            - { integration: ohmie, domain: switch }
+            - { integration: ohmie, domain: binary_sensor }
+    target:
+      name: Your real switch
+      selector:
+        entity:
+          filter: { domain: switch }
+    enabled:
+      name: Only while this is on (optional)
+      default: ""
+      selector:
+        entity:
+          filter:
+            - { domain: input_boolean }
+            - { domain: switch }
+            - { domain: binary_sensor }
+mode: restart
+trigger_variables:
+  enabled_entity: !input enabled
+triggers:
+  - trigger: state
+    entity_id: !input source
+    to: ["on", "off"]
+  - trigger: template
+    value_template: "{{ enabled_entity != '' and is_state(enabled_entity, 'on') }}"
+variables:
+  source_entity: !input source
+conditions:
+  - condition: template
+    value_template: >-
+      {{ (enabled_entity == '' or is_state(enabled_entity, 'on'))
+         and states(source_entity) in ['on', 'off'] }}
+actions:
+  - action: "switch.turn_{{ states(source_entity) }}"
+    target:
+      entity_id: !input target

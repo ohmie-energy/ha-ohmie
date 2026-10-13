@@ -1,0 +1,102 @@
+blueprint:
+  name: Ohmie · command a battery by mode and power
+  description: >-
+    For a battery or inverter that takes a mode and a power setting. Follows Ohmie's Command
+    entity: charge and discharge at Ohmie's power, hold, or back to your own mode ("normal") when
+    Ohmie is not in control (suggestions only, paused, no plan). With an "only while this is on"
+    entity, turning it off puts the battery back in your normal mode at once. You pick the entities
+    and the names of the modes; nothing here is specific to a brand.
+  domain: automation
+  source_url: https://github.com/ohmie-energy/ha-ohmie/blob/main/blueprints/automation/ohmie/mode_and_power.yaml
+  input:
+    command:
+      name: Ohmie "Command" sensor
+      selector:
+        entity:
+          filter: { integration: ohmie, domain: sensor }
+    mode:
+      name: Mode select
+      selector:
+        entity:
+          filter: { domain: select }
+    charge_option:
+      name: Mode option that charges from the grid
+      selector: { text: {} }
+    discharge_option:
+      name: Mode option that discharges (exports)
+      selector: { text: {} }
+    normal_option:
+      name: Mode option for your normal use (for example Self Use)
+      selector: { text: {} }
+    hold_option:
+      name: Mode option that holds the charge (optional; normal use if empty)
+      default: ""
+      selector: { text: {} }
+    power:
+      name: Power setting (optional)
+      default: ""
+      selector:
+        entity:
+          filter: { domain: number }
+    power_unit:
+      name: Unit of the power setting
+      default: W
+      selector:
+        select:
+          options: [W, kW]
+    enabled:
+      name: Only while this is on (optional)
+      default: ""
+      selector:
+        entity:
+          filter:
+            - { domain: input_boolean }
+            - { domain: switch }
+            - { domain: binary_sensor }
+mode: restart
+trigger_variables:
+  enabled_entity: !input enabled
+triggers:
+  - trigger: state
+    entity_id: !input command
+  - trigger: template
+    value_template: "{{ enabled_entity != '' and is_state(enabled_entity, 'on') }}"
+  - trigger: template
+    value_template: "{{ enabled_entity != '' and not is_state(enabled_entity, 'on') }}"
+variables:
+  command_entity: !input command
+  power_entity: !input power
+  unit: !input power_unit
+  charge: !input charge_option
+  discharge: !input discharge_option
+  hold: !input hold_option
+  normal: !input normal_option
+  enabled_ok: "{{ enabled_entity == '' or is_state(enabled_entity, 'on') }}"
+  cmd: "{{ states(command_entity) if enabled_ok else 'normal' }}"
+  watts: "{{ state_attr(command_entity, 'power_magnitude_w') | int(0) }}"
+  value: "{{ watts if unit == 'W' else (watts / 1000) | round(3) }}"
+conditions:
+  - condition: template
+    value_template: "{{ cmd not in ['unknown', 'unavailable'] }}"
+actions:
+  - choose:
+      - conditions: "{{ cmd in ['charge', 'discharge'] }}"
+        sequence:
+          - action: select.select_option
+            target: { entity_id: !input mode }
+            data:
+              option: "{{ charge if cmd == 'charge' else discharge }}"
+          - if: "{{ power_entity != '' }}"
+            then:
+              - action: number.set_value
+                target: { entity_id: "{{ power_entity }}" }
+                data: { value: "{{ value }}" }
+      - conditions: "{{ cmd == 'hold' }}"
+        sequence:
+          - action: select.select_option
+            target: { entity_id: !input mode }
+            data: { option: "{{ hold if hold else normal }}" }
+    default:
+      - action: select.select_option
+        target: { entity_id: !input mode }
+        data: { option: "{{ normal }}" }
