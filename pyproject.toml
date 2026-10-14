@@ -9,7 +9,7 @@ license-files = ["LICENSE"]
 [dependency-groups]
 dev = [
     # Pinned to the Home Assistant release the integration is tested against (manifest + hacs.json).
-    "pytest-homeassistant-custom-component==0.13.367",
+    "pytest-homeassistant-custom-component==0.13.372",
     "nats-py[aiohttp]==2.16.0",
     "ruff>=0.6",
     "mypy>=1.11",
