@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_call:   # release.yml runs the same checks before it publishes
 
 permissions:
   contents: read
@@ -13,6 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
       - uses: home-assistant/actions/hassfest@50baf3a307f87100cf550d4ae127746595030d5d # master, 2026-10-13
 
   hacs:
@@ -22,12 +25,28 @@ jobs:
         with:
           category: integration
 
+  workflows:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+      - name: actionlint (syntax)
+        run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7
+      - name: zizmor (security)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: uvx zizmor@1.11.0 --format=github .github/workflows
+
   test:
     runs-on: ubuntu-latest
     env:
       NATS_VERSION: v2.15.0   # the server version Ohmie runs (Infra nats_deployment.yml)
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
       - run: uv python install 3.14
       - name: nats-server, for the NATS link tests

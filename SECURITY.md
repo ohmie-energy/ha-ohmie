@@ -1,5 +1,11 @@
 # Security
 
+## Supported versions
+
+Only the latest release gets security fixes.
+
+## Report a vulnerability
+
 Please report a vulnerability privately. Do not open a public issue.
 
 - **Preferred:** GitHub → this repository → **Security** → **Report a vulnerability**.

@@ -1,7 +1,15 @@
-# Keeps the SHA-pinned actions in validate.yml up to date.
+# Keeps the SHA-pinned actions and the dev dependencies up to date. A bump of a package that
+# manifest.json also pins (nats-py) fails tests/test_release.py until the manifest matches.
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      dev:
+        patterns: ["*"]

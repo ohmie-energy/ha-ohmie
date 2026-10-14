@@ -192,7 +192,7 @@
       "since_future": "The date cannot be in the future."
     },
     "abort": {
-      "invite_pending": "Your Ohmie invite is not active yet. You get an email when it is; then add Ohmie again.",
+      "invite_pending": "Your Ohmie invite is not active yet. When Ohmie tells you it is active, add Ohmie again.",
       "cannot_connect": "Ohmie is not reachable. Try again in a few minutes.",
       "wrong_account": "You signed in as a different person. Sign in with the account that owns this home.",
       "rejected": "Ohmie did not accept the setup: {problems}",
@@ -504,7 +504,7 @@
   "issues": {
     "invite_pending": {
       "title": "Your Ohmie invite is pending",
-      "description": "Your Ohmie account has no active invite yet. Ohmie retries by itself; you get an email when the invite is active."
+      "description": "Your Ohmie account has no active invite yet. When Ohmie tells you it is active: if Ohmie is already set up here, it connects by itself; if you were setting it up, add Ohmie again."
     },
     "plan_stale": {
       "title": "No current Ohmie plan for {asset}",

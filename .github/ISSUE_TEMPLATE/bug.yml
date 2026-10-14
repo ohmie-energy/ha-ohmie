@@ -1,0 +1,38 @@
+name: Bug report
+description: Something in the Ohmie integration does not work as it should.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: input
+    id: ohmie
+    attributes:
+      label: Ohmie version
+      description: HACS → Ohmie, or Settings → Devices & services → Ohmie.
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: ha
+    attributes:
+      label: Home Assistant version
+      placeholder: 2026.10.1
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: >
+        Settings → Devices & services → Ohmie → ⋮ → Download diagnostics, then attach the file.
+        It leaves out your sign-in and your ICP.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Lines from the Home Assistant log that name `ohmie` or `nats`.
+      render: text

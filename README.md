@@ -15,7 +15,8 @@ Ohmie membership is invite-only for now.
 ## Install
 
 1. In HACS, add this repository as a custom repository (category: Integration).
-2. Install **Ohmie**, then restart Home Assistant.
+2. Install **Ohmie**, then restart Home Assistant. HACS installs the latest
+   [release](https://github.com/ohmie-energy/ha-ohmie/releases) and tells you when a new one is out.
 3. Go to **Settings → Devices & services → Add integration → Ohmie**.
 
 ## Setup
@@ -109,6 +110,7 @@ uv run pytest
 - The NATS tests run a real `nats-server` (set `NATS_SERVER_BIN`). They are skipped without one.
 - The declaration tests check the wizard's output against the Ohmie CRDs: put the `gitops`
   checkout next to this one, or set `GITOPS_CRDS`. They are skipped without it.
+- Releases: see [RELEASING.md](RELEASING.md). Every change adds a line to [CHANGELOG.md](CHANGELOG.md).
 - The contract is in `foundation-documents`: `api-specs/home-assistant-contract.md` and
   `api-specs/edge-protocol.md`.
 
