@@ -3,14 +3,19 @@
 from __future__ import annotations
 
 import datetime
+import hashlib
 import importlib.util
 import json
+import os
 import pathlib
 import re
 import shutil
+import subprocess
 import tomllib
+import zipfile
 
 import pytest
+import yaml
 
 ROOT = pathlib.Path(__file__).parents[1]
 _spec = importlib.util.spec_from_file_location("release", ROOT / "scripts" / "release.py")
@@ -47,7 +52,8 @@ def test_hacs_installs_the_zip_the_release_workflow_builds():
     hacs = json.loads((ROOT / "hacs.json").read_text())
     assert hacs["zip_release"] is True
     workflow = (ROOT / ".github" / "workflows" / "release.yml").read_text()
-    assert f"ZIP: {hacs['filename']}" in workflow
+    assert f"ASSET: {hacs['filename']}" in workflow
+    assert 'release.py --build "$ASSET"' in workflow  # the build CI runs is the one tested here
 
 
 def test_the_english_translation_is_the_source_strings():
@@ -119,3 +125,73 @@ def test_the_manifest_pins_what_the_tests_run():
                for d in tomllib.loads((ROOT / "pyproject.toml").read_text())["dependency-groups"][
                    "dev"] if "==" in d)
     assert {k: dev.get(k) for k in manifest} == manifest
+
+
+def tracked_integration_files() -> set[str]:
+    out = subprocess.run(["git", "ls-files", "custom_components/ohmie"], cwd=ROOT, check=True,
+                         capture_output=True, text=True).stdout.split()
+    return {pathlib.PurePosixPath(p).relative_to("custom_components/ohmie").as_posix() for p in out}
+
+
+def test_the_release_zip_holds_exactly_the_integration_at_its_root(tmp_path):
+    src = tmp_path / "ohmie"
+    shutil.copytree(SRC, src, ignore=shutil.ignore_patterns("__pycache__", "*.pyc", ".DS_Store"))
+    (src / "__pycache__").mkdir()
+    (src / "__pycache__" / "stray.cpython-314.pyc").write_bytes(b"x")  # never shipped
+    (src / ".DS_Store").write_bytes(b"x")
+    digest = release.build(tmp_path / "ohmie.zip", src)
+    with zipfile.ZipFile(tmp_path / "ohmie.zip") as z:
+        names = set(z.namelist())
+        assert z.testzip() is None
+    assert names == tracked_integration_files()
+    assert {"manifest.json", "brand/icon.png", "translations/en.json"} <= names
+    assert digest == hashlib.sha256((tmp_path / "ohmie.zip").read_bytes()).hexdigest()
+
+
+def test_the_release_zip_is_reproducible(tmp_path):
+    assert release.build(tmp_path / "a.zip") == release.build(tmp_path / "b.zip")
+
+
+def test_the_build_ignores_tool_option_variables(tmp_path, monkeypatch):
+    # v0.1.0 failed because Info-ZIP reads $ZIP as options. The build uses no external tool.
+    for var in ("ZIP", "ZIPOPT", "UNZIP", "GZIP", "TAR_OPTIONS"):
+        monkeypatch.setenv(var, "ohmie.zip -q")
+    assert release.build(tmp_path / "ohmie.zip") == release.build(tmp_path / "again.zip")
+
+
+@pytest.mark.parametrize("workflow", ["release.yml", "validate.yml"])
+def test_workflow_shell_steps_fail_on_a_failed_pipe(workflow):
+    wf = yaml.safe_load((ROOT / ".github" / "workflows" / workflow).read_text())
+    assert wf["defaults"]["run"]["shell"] == "bash"  # GitHub then runs bash -eo pipefail
+
+
+def test_the_release_job_steps_run_here(tmp_path):
+    # Runs release.yml's own shell steps, as CI does, with gh stubbed: the publish step's
+    # arguments, the notes and the built files are checked without a tag or a network.
+    wf = yaml.safe_load((ROOT / ".github" / "workflows" / "release.yml").read_text())
+    job = wf["jobs"]["release"]
+    steps = {s["name"]: s["run"] for s in job["steps"] if "run" in s}
+    work = tmp_path / "work"
+    shutil.copytree(ROOT, work, ignore=shutil.ignore_patterns(
+        ".git", ".venv", "__pycache__", "*.pyc", ".*_cache", ".idea", ".DS_Store"))
+    stub = tmp_path / "bin"
+    stub.mkdir()
+    (stub / "gh").write_text('#!/bin/sh\nprintf "%s\\n" "$@" > "$GH_ARGS"\n')
+    (stub / "gh").chmod(0o755)
+    tag = f"v{manifest_version()}"
+    env = {**os.environ, **{k: str(v) for k, v in job["env"].items() if "${{" not in str(v)},
+           "TAG": tag, "GITHUB_WORKSPACE": str(work), "GH_ARGS": str(tmp_path / "gh.args"),
+           "PATH": f"{stub}{os.pathsep}{os.environ['PATH']}",
+           "ZIP": "ohmie.zip -q", "ZIPOPT": "-q"}  # what broke v0.1.0 must not matter
+    for name in ("The tag, the version files and the changelog agree",
+                 "Build the zip that HACS installs", "Publish the release"):
+        subprocess.run(["bash", "--noprofile", "--norc", "-eo", "pipefail", "-c", steps[name]],
+                       cwd=work, env=env, check=True, capture_output=True)
+    asset = job["env"]["ASSET"]
+    digest, name = (work / f"{asset}.sha256").read_text().split()
+    assert (name, digest) == (asset, hashlib.sha256((work / asset).read_bytes()).hexdigest())
+    args = (tmp_path / "gh.args").read_text().split("\n")
+    assert args[:5] == ["release", "create", tag, asset, f"{asset}.sha256"]
+    assert {"--verify-tag", "--notes-file"} <= set(args)
+    log = (ROOT / "CHANGELOG.md").read_text()
+    assert (work / "notes.md").read_text().strip() == release.section(log, manifest_version())

@@ -6,6 +6,14 @@ All notable changes to Ohmie for Home Assistant. The format follows
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-15
+
+The first version you can install from HACS. It has the same features as 0.1.0.
+
+### Fixed
+
+- The release build. 0.1.0 was tagged, but its build failed, so it was never published.
+
 ## [0.1.0] - 2026-10-15
 
 First public release. Ohmie membership is invite-only.
@@ -26,5 +34,6 @@ First public release. Ohmie membership is invite-only.
 - A repair that asks you to confirm a suspected supply cut.
 - Six blueprints that pass Ohmie's entities to your own devices, under your own conditions.
 
-[Unreleased]: https://github.com/ohmie-energy/ha-ohmie/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/ohmie-energy/ha-ohmie/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/ohmie-energy/ha-ohmie/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/ohmie-energy/ha-ohmie/releases/tag/v0.1.0
