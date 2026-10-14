@@ -3,18 +3,24 @@
     python3 scripts/release.py 0.2.0          bump the version everywhere; date the changelog
     python3 scripts/release.py --check v0.2.0 the tag, the version files and the changelog agree
     python3 scripts/release.py --notes v0.2.0 print the changelog section of that version
+    python3 scripts/release.py --build ohmie.zip  build the zip HACS installs; print its sha256
 """
 
 from __future__ import annotations
 
 import argparse
 import datetime
+import hashlib
 import json
 import pathlib
 import re
 import sys
+import zipfile
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+SRC = ROOT / "custom_components" / "ohmie"
+SKIP = {"__pycache__", ".DS_Store"}
+EPOCH = (1980, 1, 1, 0, 0, 0)  # fixed timestamps: the same source gives the same zip
 REPO = "https://github.com/ohmie-energy/ha-ohmie"
 SEMVER = re.compile(r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-(alpha|beta|rc)\.(\d+))?")
 STAGE = {"alpha": 0, "beta": 1, "rc": 2, None: 3}
@@ -94,16 +100,35 @@ def check(tag: str, root: pathlib.Path = ROOT) -> str:
     return version
 
 
+def build(out: pathlib.Path, src: pathlib.Path = SRC) -> str:
+    """The integration's files at the zip's root (hacs.json zip_release). Returns the sha256."""
+    files = sorted((p for p in src.rglob("*") if p.is_file() and p.suffix != ".pyc"
+                    and not SKIP & set(p.relative_to(src).parts)),
+                   key=lambda p: p.relative_to(src).as_posix())
+    if not (src / "manifest.json").is_file():
+        raise ReleaseError(f"no manifest.json in {src}")
+    with zipfile.ZipFile(out, "w") as z:
+        for p in files:
+            info = zipfile.ZipInfo(p.relative_to(src).as_posix(), EPOCH)
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.external_attr = 0o644 << 16
+            z.writestr(info, p.read_bytes())
+    return hashlib.sha256(out.read_bytes()).hexdigest()
+
+
 def main(argv: list[str]) -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     g = p.add_mutually_exclusive_group(required=True)
     g.add_argument("version", nargs="?")
     g.add_argument("--check", metavar="TAG")
     g.add_argument("--notes", metavar="TAG")
+    g.add_argument("--build", metavar="ZIP", type=pathlib.Path)
     a = p.parse_args(argv)
     try:
         if a.check:
             print(f"ok: {check(a.check)}")
+        elif a.build:
+            print(f"{build(a.build)}  {a.build.name}")  # sha256sum format: sha256sum -c works
         elif a.notes:
             print(section(_files(ROOT)["changelog"].read_text(), check(a.notes)))
         else:

@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash   # bash -eo pipefail: a failed command in a pipe fails the step
+
 concurrency:
   group: release
   cancel-in-progress: false
@@ -27,7 +31,7 @@ jobs:
       attestations: write   # store the build provenance
     env:
       TAG: ${{ github.ref_name }}
-      ZIP: ohmie.zip
+      ASSET: ohmie.zip   # not ZIP: Info-ZIP reads $ZIP as its own options (v0.1.0 failed so)
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -38,15 +42,10 @@ jobs:
       - name: The tag, the version files and the changelog agree
         run: python3 scripts/release.py --check "$TAG"
       - name: Build the zip that HACS installs
-        run: |
-          cd custom_components/ohmie
-          zip -r -X "$GITHUB_WORKSPACE/$ZIP" . -x '*__pycache__*' '*.pyc'
-          cd "$GITHUB_WORKSPACE"
-          unzip -l "$ZIP" | grep -q ' manifest.json$'
-          sha256sum "$ZIP" | tee "$ZIP.sha256"
+        run: python3 scripts/release.py --build "$ASSET" | tee "$ASSET.sha256"
       - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          subject-path: ${{ env.ZIP }}
+          subject-path: ${{ env.ASSET }}
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -54,5 +53,5 @@ jobs:
           python3 scripts/release.py --notes "$TAG" > notes.md
           pre=""
           case "$TAG" in *-*) pre="--prerelease" ;; esac
-          gh release create "$TAG" "$ZIP" "$ZIP.sha256" --verify-tag --title "$TAG" \
+          gh release create "$TAG" "$ASSET" "$ASSET.sha256" --verify-tag --title "$TAG" \
             --notes-file notes.md $pre
