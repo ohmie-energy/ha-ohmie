@@ -9,8 +9,8 @@ license-files = ["LICENSE"]
 [dependency-groups]
 dev = [
     # Pinned to the Home Assistant release the integration is tested against (manifest + hacs.json).
-    "pytest-homeassistant-custom-component==0.13.367",
-    "nats-py[aiohttp]==2.16.0",
+    "pytest-homeassistant-custom-component==0.13.375",
+    "nats-py[aiohttp]==2.17.0",
     "ruff>=0.6",
     "mypy>=1.11",
     # Wizard output checked against the CRD schemas (ohmie-energy/gitops crds/).
